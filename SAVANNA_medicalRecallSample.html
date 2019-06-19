@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!--/******************************************************************************************************** 
+ * CONFIDENTIAL AND PROPRIETARY 
+ *
+ * The source code and other information contained herein is the confidential and the exclusive property of
+ * ZIH Corporation and is subject to the terms and conditions in your end user license agreement.
+ * This source code, and any other information contained herein, shall not be copied, reproduced, published, 
+ * displayed or distributed, in whole or in part, in any medium, by any means, for any purpose except as
+ * expressly permitted under such license agreement.
+ * 
+ * Copyright ZIH Corporation 2019
+ *
+ * ALL RIGHTS RESERVED 
+ *********************************************************************************************************/
+ 
+ /*********************************************************************************************************
+ File:   SAVANNA_medicalRecallSample.html
+
+ Descr: A sample webpage showing how to use Savanna APIs.     
+ Author: Robin West
+ Date: 8/24/2018 
+ Updated: 6/19/2019
+ *******************************************************************************************************/-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A sample webpage showing how to use Savanna APIs.">
+  <meta name="author" content="Robin West">
+  <title>Savanna Medical Recall Sample</title>
+</head>
+<body onload="onloaded();">
+  Enter a drug name: <input type="text" id="name" style="width:500px" value="Ibuprofen"><br>
+  <button onclick="GetRecalls(); return false;">Get Recall Notices</button>
+  <div id="output"></div>
+  <script>
+    var apikey = "";
+    function GetRecalls()
+    {
+      var name = document.getElementById("name").value;
+      var output = document.getElementById("output");
+      var url = "https://api.zebra.com/v2/tools/recalls/drug/description?val=" + name + "&limit=10";
+      var method = "GET";
+      var async = true;
+      var request = new XMLHttpRequest();
+
+      request.onload = function () {
+        var status = request.status; // HTTP response status, e.g., 200 for "200 OK"
+        var data = request.responseText; // Returned data, e.g., an HTML document.
+        //output.innerHTML = "Status: " + status + "<br>" + data;
+        if (status == 200) {
+          myObj = JSON.parse(data);
+          var txt = "<table border='1'><tr><th>Recall #</th><th>Report Date</th><th>Product</th><th>Reason</th><th>Status</th></tr>"
+          for (x in myObj["results"]) {
+              var color = "greenyellow";
+              if (myObj["results"][x].status == "Ongoing")
+                color = "salmon";
+              txt += "<tr style='background-color:"+color+"'><td>" + myObj["results"][x].recall_number + "</td><td>"+myObj["results"][x].report_date+"</td>"
+              txt += "<td>"+myObj["results"][x].product_description+"</td><td>"+myObj["results"][x].reason_for_recall+"</td><td>"+myObj["results"][x].status+"</td></tr>";
+          }
+          txt += "</table>" 
+          document.getElementById("output").innerHTML = txt;
+        }
+      }
+
+      request.open(method, url, async);
+      request.setRequestHeader("apikey", apikey);
+
+      // Actually sends the request to the server.
+      request.send();
+    }
+    
+    //Grab the key from the URL
+    function getQueryVariable(variable)
+    {
+       var query = window.location.search.substring(1);
+       var vars = query.split("&");
+       for (var i=0;i<vars.length;i++) {
+               var pair = vars[i].split("=");
+               if(pair[0] == variable){return pair[1];}
+       }
+       return(false);
+    }
+    function onloaded()
+    {
+      apikey = getQueryVariable("apikey");
+    }
+  </script>
+</body>
+</html>
